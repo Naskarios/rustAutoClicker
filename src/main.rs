@@ -2,13 +2,25 @@
 #![allow(unused_parens)]
 use mouse_rs::{types::Point, Mouse};
 use std::time::Duration;
-use std::{thread, time};
+use std::thread;
 
 fn main() {
+    // impl user input here
     println!("Wanna click or press?");
-    let clickFlag = true;
+    let clickFlag = false;
     let pressFlag = false;
-    traceAndExcecutePointPath(clickFlag, pressFlag);
+    println!("wanna add your own point?");
+    let mut  userPoints: Vec<Point>= vec![Point{x:100,y:100},Point{x:200,y:200},Point{x:300,y:300},Point{x:400,y:400}];
+    // userPoints.pop();
+    // userPoints.pop();
+    // userPoints.pop();
+    // userPoints.pop();
+    // print!("EDW ----> {:?}",userPoints);
+
+    
+    traceAndExcecutePointPath(clickFlag, pressFlag,userPoints);
+
+
     // let mouse = Mouse::new();
 
     // let positionGiven = get_post(&mouse);
@@ -30,20 +42,17 @@ fn main() {
     // }
 }
 
-fn get_post(mouse: &Mouse) -> Point {
-    let pos = mouse.get_position().unwrap();
-    pos
-}
-
 fn move_mouse(mouse: &Mouse, pos: Point) {
     mouse.move_to(pos.x, pos.y).expect("Unable to move mouse");
     println!("> MOVED TO POSITION {:?}", pos)
 }
 
 fn makeNewListPoints(mouse: &Mouse) -> Vec<Point> {
-    println!("How many points are we tracing");
+
+    // impl user input here
+    println!("> How many points are we tracing");
     let count: usize = 3;
-    println!("Delay between point trace");
+    println!("> How much delay (seconds) between each point trace");
     let traceDelay: usize = 3;
     println!(
         "> reading {:?} amount of positions with a 3 sec delay between reads",
@@ -60,7 +69,7 @@ fn makeNewListPoints(mouse: &Mouse) -> Vec<Point> {
 
     //point capture with 3sec delay
 
-    for i in 1..count + 1 {
+    for i in 1..count+1 {
         newListPoints.push(mouse.get_position().unwrap());
         print!("> {:?} new point{:?}\n", i, newListPoints[i]);
         thread::sleep(Duration::from_secs(traceDelay.try_into().unwrap()));
@@ -68,22 +77,35 @@ fn makeNewListPoints(mouse: &Mouse) -> Vec<Point> {
     newListPoints
 }
 
-fn traceAndExcecutePointPath(clickFlag: bool, pressFlag: bool) {
+fn traceAndExcecutePointPath(clickFlag: bool, pressFlag: bool,userPoints:Vec<Point>) {
     let mouse = Mouse::new();
+    let mut ListPoints: Vec<Point>=vec![Point{x:0,y:0}];
 
-    // tracing the new positions
-    let newListPoints = makeNewListPoints(&mouse);
-    println!("> {:?}", newListPoints);
+    if(userPoints.is_empty()){
+
+        // tracing the new positions
+
+        println!("NO USER POINTS AVAILABLE");
+        ListPoints = makeNewListPoints(&mouse);
+        println!("> {:?}", ListPoints);
+    }
+    else {
+
+        //using users positions
+
+        ListPoints=userPoints;
+        println!("> User points added {:?}",ListPoints);
+    }
 
     // move to specified positions loop with a 1sec delay
 
     if (pressFlag == true) {
-        mouse.press(&mouse_rs::types::keys::Keys::LEFT);
+        mouse.press(&mouse_rs::types::keys::Keys::LEFT).expect("err msg");
     }
-    for p in newListPoints {
+    for p in ListPoints {
         move_mouse(&mouse, p);
         if (clickFlag == true) {
-            mouse.click(&mouse_rs::types::keys::Keys::LEFT);
+           let _ = mouse.click(&mouse_rs::types::keys::Keys::LEFT);
         }
         thread::sleep(Duration::from_secs(1));
     }
