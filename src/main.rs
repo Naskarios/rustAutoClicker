@@ -3,10 +3,15 @@
 
 use enigo::Mouse as Mouse2;
 use enigo::{
+    // {Axis::Horizontal, Axis::Vertical},
+    // {
+    Coordinate::Abs,
+    //  Coordinate::Rel},
     Direction::{Click, Press, Release},
-    Enigo, Key, Keyboard, Settings,
-    {Axis::Horizontal, Axis::Vertical},
-    {Coordinate::Abs, Coordinate::Rel},
+    Enigo,
+    Key,
+    Keyboard,
+    Settings,
 };
 use std::io;
 use std::thread;
@@ -22,10 +27,37 @@ fn main() {
     let mut clickFlag = false;
     let mut pressFlag = false;
     let mut userPoints: Vec<(i32, i32)> = vec![];
+    //mut because there will be a loop later
+    let mut menuOption: i32;
 
-    (clickFlag, pressFlag, userPoints) = settingParameters(clickFlag, pressFlag, userPoints);
+    // menuOption = menu();
 
-    traceAndExcecutePointPath(clickFlag, pressFlag, userPoints);
+
+    // all branches of the match must have the same output
+    // what if every funtion returns an result/option/err?
+    // match menu{
+    //     1 =>
+    // }
+
+    menuOption=3;
+
+    if menuOption == 1 {
+        (clickFlag, pressFlag) = settingParameters(clickFlag, pressFlag);
+        if userPoints.is_empty() {
+            userPoints = makeNewListPoints();
+        }
+        excecutePointPath(clickFlag, pressFlag, &userPoints);
+    } else if menuOption == 2 {
+        // POKEMON MODE
+    } else if menuOption == 3 {
+        (clickFlag, pressFlag) = settingParameters(clickFlag, pressFlag);
+        if userPoints.is_empty() {
+            userPoints = makeNewListPoints();
+        }
+        loop {
+            excecutePointPath(clickFlag, pressFlag, &userPoints)
+        }
+    }
 
     // POKEMON MODE
 
@@ -52,14 +84,25 @@ fn main() {
     // pokemonChooseMove(5);
 
     println!("THE END??");
+}
 
+fn menu() -> i32 {
+    let mut menuOption: i32;
+    println!("Choose an option:");
+    print!("1.Simple trace \n 2.Pokemon mode \n 3.Trace loop");
+
+    // io::stdin()
+    //     .read_line(&mut menuOption)
+    //     .expect("failed to readline");
+
+    menuOption = 1;
+    menuOption
 }
 
 fn settingParameters(
     mut clickFlag: bool,
-    mut pressFlag: bool,
-    mut userPoints: Vec<(i32, i32)>,
-) -> (bool, bool, Vec<(i32, i32)>) {
+    mut pressFlag: bool
+) -> (bool, bool) {
     let mut userInput = String::new();
 
     println!("> Wanna click or press? (c/p)");
@@ -79,21 +122,21 @@ fn settingParameters(
     }
     userInput.clear();
 
-    println!("> Wanna add your own point path?(y/n)");
-    // reading input
+    // println!("> Wanna add your own point path?(y/n)");
+    // // reading input
 
-    io::stdin()
-        .read_line(&mut userInput)
-        .expect("failed to readline");
+    // io::stdin()
+    //     .read_line(&mut userInput)
+    //     .expect("failed to readline");
 
-    if (userInput.starts_with('y') || userInput.starts_with('Y')) {
-        // userPoint setup
-        userPoints = makeNewListPoints();
-    } else {
-        println!("> NO OPTION SPECIFIED");
-        println!("> CONTINUING WITHOUT IMPORT");
-    }
-    (clickFlag, pressFlag, userPoints)
+    // if (userInput.starts_with('y') || userInput.starts_with('Y')) {
+    //     // userPoint setup
+    //     userPoints = makeNewListPoints();
+    // } else {
+    //     println!("> NO OPTION SPECIFIED");
+    //     println!("> CONTINUING WITHOUT IMPORT");
+    // }
+    (clickFlag, pressFlag)
 }
 
 fn makeNewListPoints() -> Vec<(i32, i32)> {
@@ -125,7 +168,7 @@ fn makeNewListPoints() -> Vec<(i32, i32)> {
         "> reading {:?} amount of positions with a {:?} sec delay between reads",
         count, traceDelay
     );
-    let mut mouse2: Enigo = Enigo::new(&Settings::default()).unwrap();
+    let mouse2: Enigo = Enigo::new(&Settings::default()).unwrap();
 
     //user warning
     println!("> Staring in 3...");
@@ -135,10 +178,10 @@ fn makeNewListPoints() -> Vec<(i32, i32)> {
     println!("> Staring in 1...");
 
     // let mut newListPoints: Vec<Point> = vec![Point { x: 0, y: 0 }];
-    let mut newListPoints2: Vec<(i32, i32)> = vec![(0, 0)];
+    let mut newListPoints2: Vec<(i32, i32)> = vec![];
     //point capture with 3sec delay
 
-    for i in 1..count + 1 {
+    for i in 0..count {
         // newListPoints.push(mouse.get_position().unwrap());
         newListPoints2.push(mouse2.location().unwrap());
 
@@ -148,22 +191,22 @@ fn makeNewListPoints() -> Vec<(i32, i32)> {
     newListPoints2
 }
 
-fn traceAndExcecutePointPath(clickFlag: bool, pressFlag: bool, userPoints: Vec<(i32, i32)>) {
-    let ListPoints: Vec<(i32, i32)>;
+fn excecutePointPath(clickFlag: bool, pressFlag: bool, userPoints: &Vec<(i32, i32)>) {
+    let ListPoints: &Vec<(i32, i32)>;
     let mut mouse: Enigo = Enigo::new(&Settings::default()).unwrap();
 
-    // Trac Path
-    if (userPoints.is_empty()) {
-        println!("> NO USER POINTS AVAILABLE ");
-        println!("> LET S MAKE ONE NOW");
-        ListPoints = makeNewListPoints();
-        println!("> {:?}", ListPoints);
-    } else {
-        //using users positions
+    // // Trac Path
+    // if (userPoints.is_empty()) {
+    //     println!("> NO USER POINTS AVAILABLE ");
+    //     println!("> LET S MAKE ONE NOW");
+    //     ListPoints = makeNewListPoints();
+    //     println!("> {:?}", ListPoints);
+    // } else {
+    //     //using users positions
 
-        ListPoints = userPoints;
-        println!("> User points added {:?}", ListPoints);
-    }
+    ListPoints = userPoints;
+    //     println!("> User points added {:?}", ListPoints);
+    // }
 
     // Excecute Path
     // move to specified positions loop with a 1sec delay
