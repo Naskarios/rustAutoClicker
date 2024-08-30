@@ -32,14 +32,13 @@ fn main() {
 
     // menuOption = menu();
 
-
     // all branches of the match must have the same output
     // what if every funtion returns an result/option/err?
     // match menu{
     //     1 =>
     // }
 
-    menuOption=3;
+    (menuOption, userPoints) = menu();
 
     if menuOption == 1 {
         (clickFlag, pressFlag) = settingParameters(clickFlag, pressFlag);
@@ -48,7 +47,7 @@ fn main() {
         }
         excecutePointPath(clickFlag, pressFlag, &userPoints);
     } else if menuOption == 2 {
-        // POKEMON MODE
+        pokemonMode()
     } else if menuOption == 3 {
         (clickFlag, pressFlag) = settingParameters(clickFlag, pressFlag);
         if userPoints.is_empty() {
@@ -61,48 +60,57 @@ fn main() {
 
     // POKEMON MODE
 
-    // // alt + tab to focus on the game window
-    // let mut enigo = Enigo::new(&Settings::default()).unwrap();
-    // enigo.key(Key::Alt, Press).unwrap();
-    // enigo.key(Key::Tab, Click).unwrap();
-    // enigo.key(Key::Control, Release).unwrap();
-
-    // pokemonRoam();
-
-    // pokemonChooseMove(1);
-    // thread::sleep(Duration::from_millis(500));
-
-    // pokemonChooseMove(2);
-    // thread::sleep(Duration::from_millis(500));
-
-    // pokemonChooseMove(3);
-    // thread::sleep(Duration::from_millis(500));
-
-    // pokemonChooseMove(4);
-    // thread::sleep(Duration::from_millis(500));
-
-    // pokemonChooseMove(5);
-
     println!("THE END??");
 }
 
-fn menu() -> i32 {
-    let mut menuOption: i32;
-    println!("Choose an option:");
-    print!("1.Simple trace \n 2.Pokemon mode \n 3.Trace loop");
+fn pokemonMode() {
+    // // alt + tab to focus on the game window
+    let mut enigo = Enigo::new(&Settings::default()).unwrap();
+    enigo.key(Key::Alt, Press).unwrap();
+    enigo.key(Key::Tab, Click).unwrap();
+    enigo.key(Key::Alt, Release).unwrap();
 
-    // io::stdin()
-    //     .read_line(&mut menuOption)
-    //     .expect("failed to readline");
+    pokemonRoam();
 
-    menuOption = 1;
-    menuOption
+    let mut moveNum: i32 = 2;
+    if (moveNum == 5) {
+        pokemonChooseMove(5);
+        pokemonChooseMove(5);
+        return;
+    }
+    pokemonChooseMove(moveNum);
+    thread::sleep(Duration::from_millis(500));
 }
 
-fn settingParameters(
-    mut clickFlag: bool,
-    mut pressFlag: bool
-) -> (bool, bool) {
+fn menu() -> (i32, Vec<(i32, i32)>) {
+    // impl the import option-------------------------------------------------------------
+    let mut menuOption = String::new();
+    let mut menuOption2: i32 = 0;
+    let mut userPoints: Vec<(i32, i32)> = vec![];
+
+    println!("Choose an option:");
+    print!("1.Simple trace \n 2.Pokemon mode \n 3.Trace loop \n4.Import?\n");
+
+    io::stdin()
+        .read_line(&mut menuOption)
+        .expect("failed to readline");
+
+    if menuOption.starts_with('1') {
+        menuOption2 = 1;
+    }
+    if menuOption.starts_with('2') {
+        menuOption2 = 2;
+    }
+    if menuOption.starts_with('3') {
+        menuOption2 = 3;
+    }
+    if menuOption.starts_with('4') {
+        menuOption2 = 4;
+    }
+    (menuOption2, userPoints)
+}
+
+fn settingParameters(mut clickFlag: bool, mut pressFlag: bool) -> (bool, bool) {
     let mut userInput = String::new();
 
     println!("> Wanna click or press? (c/p)");
@@ -250,11 +258,6 @@ fn pokemonRoam() {
 fn pokemonChooseMove(moveNum: i32) {
     let mut mouse: Enigo = Enigo::new(&Settings::default()).unwrap();
 
-    // mouse.move_mouse(100, 100, Abs);
-    // thread::sleep(Duration::from_secs(1));
-    // mouse.move_mouse(200, 200, Abs);
-    // thread::sleep(Duration::from_secs(1));
-    // mouse.move_mouse(300, 300, Abs);
     match moveNum {
         1 => mouse.move_mouse(71, 352, Abs).unwrap(),
         2 => mouse.move_mouse(169, 341, Abs).unwrap(),
@@ -263,6 +266,7 @@ fn pokemonChooseMove(moveNum: i32) {
         5 => mouse.move_mouse(130, 466, Abs).unwrap(),
         _ => mouse.move_mouse(130, 466, Abs).unwrap(),
     }
+    let _ = mouse.button(enigo::Button::Left, Click).unwrap();
 }
 
 /*
