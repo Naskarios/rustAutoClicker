@@ -1,25 +1,72 @@
 #![allow(non_snake_case)]
 #![allow(unused_parens)]
 use mouse_rs::{types::Point, Mouse};
-use std::time::Duration;
+use std::io;
 use std::thread;
+use std::time::Duration;
 
 fn main() {
-    // impl user input here
-    println!("Wanna click or press?");
-    let clickFlag = false;
-    let pressFlag = false;
-    println!("wanna add your own point?");
-    let mut  userPoints: Vec<Point>= vec![Point{x:100,y:100},Point{x:200,y:200},Point{x:300,y:300},Point{x:400,y:400}];
+    // menu();
+    // parameter initialization
+    let mut clickFlag = false;
+    let mut pressFlag = false;
+    let mut userInput = String::new();
+    let mut userPoints: Vec<Point> = vec![];
+    // let mut userPoints: Vec<Point> = vec![
+    //     Point { x: 100, y: 100 },
+    //     Point { x: 200, y: 200 },
+    //     Point { x: 300, y: 300 },
+    //     Point { x: 400, y: 400 },
+    // ];
+    let mouse = Mouse::new();
+
+    // PARAMETER SETTING *********************************************************************************************************
+
+    println!("> Wanna click or press? (c/p)");
+    // reading input
+
+    io::stdin()
+        .read_line(&mut userInput)
+        .expect("failed to readline");
+
+    if (userInput.starts_with('c') || userInput.starts_with('C')) {
+        clickFlag = true;
+    } else if userInput.starts_with('p') || userInput.starts_with('P') {
+        pressFlag = true;
+    } else {
+        println!("> NO OPTION SPECIFIED");
+        println!("> CONTINUING WITHOUT OPTIONS");
+    }
+    userInput.clear();
+
+    println!("> Wanna add your own point path?(y/n)");
+    // reading input
+
+    io::stdin()
+        .read_line(&mut userInput)
+        .expect("failed to readline");
+
+    if (userInput.starts_with('y') || userInput.starts_with('Y')) {
+        // userPoint setup
+        userPoints = makeNewListPoints(&Mouse::new())
+    } else {
+        println!("> NO OPTION SPECIFIED");
+        println!("> CONTINUING WITHOUT IMPORT");
+    }
+
+    // PARAMETER SETTING DONE****************************************************************************************************
+
+    // io::stdin()
+    //     .read_line(&mut userInput)
+    //     .expect("failed to readline");
+
     // userPoints.pop();
     // userPoints.pop();
     // userPoints.pop();
     // userPoints.pop();
     // print!("EDW ----> {:?}",userPoints);
 
-    
-    traceAndExcecutePointPath(clickFlag, pressFlag,userPoints);
-
+    traceAndExcecutePointPath(clickFlag, pressFlag, userPoints);
 
     // let mouse = Mouse::new();
 
@@ -42,22 +89,36 @@ fn main() {
     // }
 }
 
-fn move_mouse(mouse: &Mouse, pos: Point) {
-    mouse.move_to(pos.x, pos.y).expect("Unable to move mouse");
-    println!("> MOVED TO POSITION {:?}", pos)
-}
-
 fn makeNewListPoints(mouse: &Mouse) -> Vec<Point> {
+    let mut userInput = String::new();
 
-    // impl user input here
     println!("> How many points are we tracing");
-    let count: usize = 3;
+
+    // input
+    io::stdin()
+        .read_line(&mut userInput)
+        .expect("failed to readline");
+
+    //input parse
+    let count: usize = userInput.trim().parse().unwrap();
+    // println!("edw count  {} -> {:?}", count, count);
+    userInput.clear();
+
     println!("> How much delay (seconds) between each point trace");
-    let traceDelay: usize = 3;
+
+    // input
+    io::stdin()
+        .read_line(&mut userInput)
+        .expect("failed to readline");
+
+    //input parse
+
+    let traceDelay: usize = userInput.trim().parse().unwrap();
     println!(
-        "> reading {:?} amount of positions with a 3 sec delay between reads",
-        count
+        "> reading {:?} amount of positions with a {:?} sec delay between reads",
+        count, traceDelay
     );
+
     //user warning
     println!("> Staring in 3...");
     thread::sleep(Duration::from_secs(1));
@@ -69,7 +130,7 @@ fn makeNewListPoints(mouse: &Mouse) -> Vec<Point> {
 
     //point capture with 3sec delay
 
-    for i in 1..count+1 {
+    for i in 1..count + 1 {
         newListPoints.push(mouse.get_position().unwrap());
         print!("> {:?} new point{:?}\n", i, newListPoints[i]);
         thread::sleep(Duration::from_secs(traceDelay.try_into().unwrap()));
@@ -77,40 +138,42 @@ fn makeNewListPoints(mouse: &Mouse) -> Vec<Point> {
     newListPoints
 }
 
-fn traceAndExcecutePointPath(clickFlag: bool, pressFlag: bool,userPoints:Vec<Point>) {
+fn traceAndExcecutePointPath(clickFlag: bool, pressFlag: bool, userPoints: Vec<Point>) {
     let mouse = Mouse::new();
-    let mut ListPoints: Vec<Point>=vec![Point{x:0,y:0}];
+    let ListPoints: Vec<Point>;
 
-    if(userPoints.is_empty()){
-
+    if (userPoints.is_empty()) {
         // tracing the new positions
 
-        println!("NO USER POINTS AVAILABLE");
+        println!("> NO USER POINTS AVAILABLE ");
+        println!("> LET S MAKE ONE NOW");
         ListPoints = makeNewListPoints(&mouse);
         println!("> {:?}", ListPoints);
-    }
-    else {
-
+    } else {
         //using users positions
 
-        ListPoints=userPoints;
-        println!("> User points added {:?}",ListPoints);
+        ListPoints = userPoints;
+        println!("> User points added {:?}", ListPoints);
     }
 
     // move to specified positions loop with a 1sec delay
 
     if (pressFlag == true) {
-        mouse.press(&mouse_rs::types::keys::Keys::LEFT).expect("err msg");
+        mouse
+            .press(&mouse_rs::types::keys::Keys::LEFT)
+            .expect("err msg");
     }
     for p in ListPoints {
-        move_mouse(&mouse, p);
+        let _ = mouse.move_to(p.x, p.y);
         if (clickFlag == true) {
-           let _ = mouse.click(&mouse_rs::types::keys::Keys::LEFT);
+            let _ = mouse.click(&mouse_rs::types::keys::Keys::LEFT);
         }
         thread::sleep(Duration::from_secs(1));
     }
+    mouse.release(&mouse_rs::types::keys::Keys::LEFT);
     println!("> PATH EXCECUTED SUCCEFULLY!!!!")
 }
+
 /*
 HOW WE GON DO IT:
 Goal: play pokemon
