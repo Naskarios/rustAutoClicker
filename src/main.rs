@@ -1,26 +1,66 @@
 #![allow(non_snake_case)]
 #![allow(unused_parens)]
-use mouse_rs::{types::Point, Mouse};
+
+use enigo::Mouse as Mouse2;
+use enigo::{
+    Direction::{Click, Press, Release},
+    Enigo, Key, Keyboard, Settings,
+    {Axis::Horizontal, Axis::Vertical},
+    {Coordinate::Abs, Coordinate::Rel},
+};
 use std::io;
 use std::thread;
 use std::time::Duration;
 
 fn main() {
+    // REDOING ALL OF THIS USING ENIGO CRATE
+    //https://chatgpt.com/share/b8ee6542-52b3-4046-bedd-abf8856e9667
     // menu();
     // parameter initialization
+
+    // env_logger::init();
     let mut clickFlag = false;
     let mut pressFlag = false;
-    let mut userInput = String::new();
-    let mut userPoints: Vec<Point> = vec![];
-    // let mut userPoints: Vec<Point> = vec![
-    //     Point { x: 100, y: 100 },
-    //     Point { x: 200, y: 200 },
-    //     Point { x: 300, y: 300 },
-    //     Point { x: 400, y: 400 },
-    // ];
-    let mouse = Mouse::new();
+    let mut userPoints: Vec<(i32, i32)> = vec![];
 
-    // PARAMETER SETTING *********************************************************************************************************
+    (clickFlag, pressFlag, userPoints) = settingParameters(clickFlag, pressFlag, userPoints);
+
+    traceAndExcecutePointPath(clickFlag, pressFlag, userPoints);
+
+    // POKEMON MODE
+
+    // // alt + tab to focus on the game window
+    // let mut enigo = Enigo::new(&Settings::default()).unwrap();
+    // enigo.key(Key::Alt, Press).unwrap();
+    // enigo.key(Key::Tab, Click).unwrap();
+    // enigo.key(Key::Control, Release).unwrap();
+
+    // pokemonRoam();
+
+    // pokemonChooseMove(1);
+    // thread::sleep(Duration::from_millis(500));
+
+    // pokemonChooseMove(2);
+    // thread::sleep(Duration::from_millis(500));
+
+    // pokemonChooseMove(3);
+    // thread::sleep(Duration::from_millis(500));
+
+    // pokemonChooseMove(4);
+    // thread::sleep(Duration::from_millis(500));
+
+    // pokemonChooseMove(5);
+
+    println!("THE END??");
+
+}
+
+fn settingParameters(
+    mut clickFlag: bool,
+    mut pressFlag: bool,
+    mut userPoints: Vec<(i32, i32)>,
+) -> (bool, bool, Vec<(i32, i32)>) {
+    let mut userInput = String::new();
 
     println!("> Wanna click or press? (c/p)");
     // reading input
@@ -48,48 +88,15 @@ fn main() {
 
     if (userInput.starts_with('y') || userInput.starts_with('Y')) {
         // userPoint setup
-        userPoints = makeNewListPoints(&Mouse::new())
+        userPoints = makeNewListPoints();
     } else {
         println!("> NO OPTION SPECIFIED");
         println!("> CONTINUING WITHOUT IMPORT");
     }
-
-    // PARAMETER SETTING DONE****************************************************************************************************
-
-    // io::stdin()
-    //     .read_line(&mut userInput)
-    //     .expect("failed to readline");
-
-    // userPoints.pop();
-    // userPoints.pop();
-    // userPoints.pop();
-    // userPoints.pop();
-    // print!("EDW ----> {:?}",userPoints);
-
-    traceAndExcecutePointPath(clickFlag, pressFlag, userPoints);
-
-    // let mouse = Mouse::new();
-
-    // let positionGiven = get_post(&mouse);
-    // println!("> POSITION GIVEN {:?}", positionGiven);
-
-    // // let listOfPoints = [(1308, 24), (989, 100), (1344, 97), (1899, 18)];
-    // let newListPoints = makeNewListPoints(&mouse, 3);
-    // println!("> {:?}", newListPoints);
-
-    // // move to specified positions loop
-
-    // // for p in listOfPoints {
-    // //initializing based on the Point struct
-    // // let positionFromList = Point { x: p.0, y: p.1 };
-    // for p in newListPoints {
-    //     move_mouse(&mouse, p);
-    //     println!("> now sleep");
-    //     thread::sleep(Duration::from_secs(2));
-    // }
+    (clickFlag, pressFlag, userPoints)
 }
 
-fn makeNewListPoints(mouse: &Mouse) -> Vec<Point> {
+fn makeNewListPoints() -> Vec<(i32, i32)> {
     let mut userInput = String::new();
 
     println!("> How many points are we tracing");
@@ -118,6 +125,7 @@ fn makeNewListPoints(mouse: &Mouse) -> Vec<Point> {
         "> reading {:?} amount of positions with a {:?} sec delay between reads",
         count, traceDelay
     );
+    let mut mouse2: Enigo = Enigo::new(&Settings::default()).unwrap();
 
     //user warning
     println!("> Staring in 3...");
@@ -126,28 +134,29 @@ fn makeNewListPoints(mouse: &Mouse) -> Vec<Point> {
     thread::sleep(Duration::from_secs(1));
     println!("> Staring in 1...");
 
-    let mut newListPoints: Vec<Point> = vec![Point { x: 0, y: 0 }];
-
+    // let mut newListPoints: Vec<Point> = vec![Point { x: 0, y: 0 }];
+    let mut newListPoints2: Vec<(i32, i32)> = vec![(0, 0)];
     //point capture with 3sec delay
 
     for i in 1..count + 1 {
-        newListPoints.push(mouse.get_position().unwrap());
-        print!("> {:?} new point{:?}\n", i, newListPoints[i]);
+        // newListPoints.push(mouse.get_position().unwrap());
+        newListPoints2.push(mouse2.location().unwrap());
+
+        print!("> {:?} new point{:?}\n", i, newListPoints2[i]);
         thread::sleep(Duration::from_secs(traceDelay.try_into().unwrap()));
     }
-    newListPoints
+    newListPoints2
 }
 
-fn traceAndExcecutePointPath(clickFlag: bool, pressFlag: bool, userPoints: Vec<Point>) {
-    let mouse = Mouse::new();
-    let ListPoints: Vec<Point>;
+fn traceAndExcecutePointPath(clickFlag: bool, pressFlag: bool, userPoints: Vec<(i32, i32)>) {
+    let ListPoints: Vec<(i32, i32)>;
+    let mut mouse: Enigo = Enigo::new(&Settings::default()).unwrap();
 
+    // Trac Path
     if (userPoints.is_empty()) {
-        // tracing the new positions
-
         println!("> NO USER POINTS AVAILABLE ");
         println!("> LET S MAKE ONE NOW");
-        ListPoints = makeNewListPoints(&mouse);
+        ListPoints = makeNewListPoints();
         println!("> {:?}", ListPoints);
     } else {
         //using users positions
@@ -156,22 +165,61 @@ fn traceAndExcecutePointPath(clickFlag: bool, pressFlag: bool, userPoints: Vec<P
         println!("> User points added {:?}", ListPoints);
     }
 
+    // Excecute Path
     // move to specified positions loop with a 1sec delay
 
     if (pressFlag == true) {
-        mouse
-            .press(&mouse_rs::types::keys::Keys::LEFT)
-            .expect("err msg");
+        let _ = mouse.button(enigo::Button::Left, Press).unwrap();
     }
     for p in ListPoints {
-        let _ = mouse.move_to(p.x, p.y);
+        let _ = mouse.move_mouse(p.0, p.1, Abs).unwrap();
         if (clickFlag == true) {
-            let _ = mouse.click(&mouse_rs::types::keys::Keys::LEFT);
+            let _ = mouse.button(enigo::Button::Left, Click).unwrap();
         }
         thread::sleep(Duration::from_secs(1));
     }
-    mouse.release(&mouse_rs::types::keys::Keys::LEFT);
+    let _ = mouse.button(enigo::Button::Left, Release).unwrap();
     println!("> PATH EXCECUTED SUCCEFULLY!!!!")
+}
+fn pokemonRoam() {
+    let mut keyboard: Enigo = Enigo::new(&Settings::default()).unwrap();
+
+    keyboard.key(Key::Unicode(('w')), Press).unwrap();
+    thread::sleep(Duration::from_millis(500));
+    keyboard.key(Key::Unicode(('w')), Release).unwrap();
+
+    keyboard.key(Key::Unicode(('s')), Press).unwrap();
+    thread::sleep(Duration::from_millis(500));
+    keyboard.key(Key::Unicode(('s')), Release).unwrap();
+
+    keyboard.key(Key::Unicode(('s')), Press).unwrap();
+    thread::sleep(Duration::from_millis(500));
+    keyboard.key(Key::Unicode(('s')), Release).unwrap();
+
+    keyboard.key(Key::Unicode(('a')), Press).unwrap();
+    thread::sleep(Duration::from_millis(500));
+    keyboard.key(Key::Unicode(('a')), Release).unwrap();
+
+    keyboard.key(Key::Unicode(('d')), Press).unwrap();
+    thread::sleep(Duration::from_millis(500));
+    keyboard.key(Key::Unicode(('d')), Release).unwrap();
+}
+fn pokemonChooseMove(moveNum: i32) {
+    let mut mouse: Enigo = Enigo::new(&Settings::default()).unwrap();
+
+    // mouse.move_mouse(100, 100, Abs);
+    // thread::sleep(Duration::from_secs(1));
+    // mouse.move_mouse(200, 200, Abs);
+    // thread::sleep(Duration::from_secs(1));
+    // mouse.move_mouse(300, 300, Abs);
+    match moveNum {
+        1 => mouse.move_mouse(71, 352, Abs).unwrap(),
+        2 => mouse.move_mouse(169, 341, Abs).unwrap(),
+        3 => mouse.move_mouse(95, 410, Abs).unwrap(),
+        4 => mouse.move_mouse(161, 409, Abs).unwrap(),
+        5 => mouse.move_mouse(130, 466, Abs).unwrap(),
+        _ => mouse.move_mouse(130, 466, Abs).unwrap(),
+    }
 }
 
 /*
@@ -183,6 +231,13 @@ Goal: play pokemon
  1344, 97) next page
  (1899, 18) close
 
+ POKEMON ME DESMUNE PANW ARISTERA
+ > [(0, 0), (71, 352), (169, 341), (95, 410), (161, 409), (130, 466)]
+moveTL
+moveTR
+moveBL
+moveBR
+cancel
 
 1.
 The plan divide the screen into squares
@@ -197,6 +252,15 @@ and programm it to go there
 2.
 The programm must also receive commands like stop or retrace for moments
 where I am not in battle
+
+
+2,5.
+POKEMON MODE
+
+5 modes
+1-4 are the moves
+5 is roam for 3 secs
+
 
 3.
 I think thats about it

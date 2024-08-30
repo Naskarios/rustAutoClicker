@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 mouse-rs = "0.4"
+enigo = "0.2.1"
