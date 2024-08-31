@@ -331,8 +331,13 @@ fn pokemonMode() {
     //big of
     pokemonRoam();
 
+
+    enigo.key(Key::Alt, Press).unwrap();
+    enigo.key(Key::Tab, Click).unwrap();
+    enigo.key(Key::Alt, Release).unwrap();
+
     loop {
-        println!("> Which move 1-4 or 5 which is flee ,6 is break");
+        println!("> Which move 1-4 or 5 which is flee and break,6 is roam again");
         // input
         io::stdin()
             .read_line(&mut userInput)
@@ -343,6 +348,13 @@ fn pokemonMode() {
             pokemonChooseMove(5);
             pokemonChooseMove(5);
             break;
+        }
+        if moveNum==6{
+            enigo.key(Key::Alt, Press).unwrap();
+            enigo.key(Key::Tab, Click).unwrap();
+            enigo.key(Key::Alt, Release).unwrap();
+            pokemonRoam();
+
         }
         pokemonChooseMove(moveNum);
         thread::sleep(Duration::from_millis(500));
@@ -355,13 +367,13 @@ fn pokemonMode() {
 fn pokemonRoam() {
     let mut keyboard: Enigo = Enigo::new(&Settings::default()).unwrap();
 
-    keyboard.key(Key::Unicode('w'), Press).unwrap();
-    thread::sleep(Duration::from_millis(600));
-    keyboard.key(Key::Unicode('w'), Release).unwrap();
-
     keyboard.key(Key::Unicode('s'), Press).unwrap();
     thread::sleep(Duration::from_millis(600));
     keyboard.key(Key::Unicode('s'), Release).unwrap();
+
+    keyboard.key(Key::Unicode('w'), Press).unwrap();
+    thread::sleep(Duration::from_millis(600));
+    keyboard.key(Key::Unicode('w'), Release).unwrap();
 
     keyboard.key(Key::Unicode('a'), Press).unwrap();
     thread::sleep(Duration::from_millis(600));
@@ -382,17 +394,23 @@ fn pokemonChooseMove(moveNum: i32) {
         5 => mouse.move_mouse(130, 466, Abs).unwrap(),
         _ => mouse.move_mouse(130, 466, Abs).unwrap(),
     }
-    mouse.button(enigo::Button::Left, Click).unwrap();
+
+    //so pokemon doesnt like instant clicks so Im putting 100ms
+    mouse.button(enigo::Button::Left, Press).unwrap();//tap battle
+    thread::sleep(Duration::from_millis(100));
+    mouse.button(enigo::Button::Left, Release).unwrap();
+
+    thread::sleep(Duration::from_millis(100));
+
+    mouse.button(enigo::Button::Left, Press).unwrap();    // use move
+    thread::sleep(Duration::from_millis(100));
+    mouse.button(enigo::Button::Left, Release).unwrap();
+
 }
 
 /*
 HOW WE GON DO IT:
 Goal: play pokemon
-
- (1308, 24) new tab
- (989, 100) menu
- 1344, 97) next page
- (1899, 18) close
 
  POKEMON ME DESMUNE PANW ARISTERA
  > [(0, 0), (71, 352), (169, 341), (95, 410), (161, 409), (130, 466)]
@@ -420,13 +438,12 @@ where I am not in battle
 2,5.
 POKEMON MODE
 
-5 modes
+5 options
 1-4 are the moves
 5 is roam for 3 secs
 
 
-3.
-Import:
+3.Import:
 x,y
 x1,y2
 
@@ -443,5 +460,9 @@ for the spiderman game
 4.
 I think thats about it
 
+Pokemon mode DONE
+Loop DONE
+All thats left is Detailed Import 
+and error handling....
 
 */
