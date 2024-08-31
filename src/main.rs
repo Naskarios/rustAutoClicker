@@ -65,42 +65,54 @@ impl_tuple_append! {
 fn main() {
     // REDOING ALL OF THIS USING ENIGO CRATE
     //https://chatgpt.com/share/b8ee6542-52b3-4046-bedd-abf8856e9667
-    let something: Vec<(i32, i32, String)> = importPath();
 
     let mut clickFlag = false;
     let mut pressFlag = false;
-    let mut userPoints: Vec<(i32, i32, String)>;
+    let mut userPoints: Vec<(i32, i32, String)> = vec![];
     //mut because there will be a loop later
     let mut menuOption: i32;
-
+    let mut excecuteDelay: u64;
     // all branches of the match must have the same output
     // what if every funtion returns an result/option/err?
     // match menu{
     //     1 =>
     // }
 
-    (menuOption, userPoints) = menu();
+    // loop {
+    menuOption = menu();
 
     if menuOption == 1 {
-        (clickFlag, pressFlag) = settingParameters(clickFlag, pressFlag);
+        (clickFlag, pressFlag, excecuteDelay) = settingParameters(clickFlag, pressFlag);
         if userPoints.is_empty() {
             userPoints = makeNewListPoints();
         }
-        excecutePointPath(clickFlag, pressFlag, &userPoints);
+        excecutePointPath(clickFlag, pressFlag, &userPoints, excecuteDelay);
     } else if menuOption == 2 {
         pokemonMode()
     } else if menuOption == 3 {
-        (clickFlag, pressFlag) = settingParameters(clickFlag, pressFlag);
+        (clickFlag, pressFlag, excecuteDelay) = settingParameters(clickFlag, pressFlag);
         if userPoints.is_empty() {
             userPoints = makeNewListPoints();
         }
+        // println!("> How much delay (seconds) between each point trace");
+        // let mut userInput = String::new();
+        // // input
+        // io::stdin()
+        //     .read_line(&mut userInput)
+        //     .expect("failed to readline");
+        // excecuteDelay = userInput.trim().parse().unwrap();
+
         loop {
-            excecutePointPath(clickFlag, pressFlag, &userPoints)
+            excecutePointPath(clickFlag, pressFlag, &userPoints, excecuteDelay)
         }
     } else if menuOption == 4 {
         userPoints = importPath();
     }
-
+    //      else {
+    //         println!("invalid option");
+    //         break;
+    //     }
+    // }
     println!("> THE END??? <");
 }
 // Import:
@@ -133,7 +145,7 @@ fn importPath() -> Vec<((i32, i32, String))> {
 
     let mut importedPath = vec![];
     let mut input = String::new();
-    let mut givenData;
+    let givenData;
     println!("> Quick (q) or Detailed (D) import");
     io::stdin().read_line(&mut input).unwrap();
 
@@ -163,13 +175,12 @@ fn importPath() -> Vec<((i32, i32, String))> {
     importedPath
 }
 
-fn menu() -> (i32, Vec<(i32, i32, String)>) {
+fn menu() -> (i32) {
     // impl the import option-------------------------------------------------------------
 
     // I got lazy thats why theres a option2 I ll fix it later
     let mut menuOption = String::new();
     let mut menuOption2: i32 = 0;
-    let mut userPoints: Vec<(i32, i32, String)> = vec![];
 
     println!("Choose an option:");
     print!(
@@ -195,10 +206,10 @@ fn menu() -> (i32, Vec<(i32, i32, String)>) {
     if menuOption.starts_with('4') {
         menuOption2 = menuOption.trim().parse().unwrap();
     }
-    (menuOption2, userPoints)
+    menuOption2
 }
 
-fn settingParameters(mut clickFlag: bool, mut pressFlag: bool) -> (bool, bool) {
+fn settingParameters(mut clickFlag: bool, mut pressFlag: bool) -> (bool, bool, u64) {
     let mut userInput = String::new();
 
     println!("> Wanna click or press? (c/p)");
@@ -217,8 +228,15 @@ fn settingParameters(mut clickFlag: bool, mut pressFlag: bool) -> (bool, bool) {
         println!("> CONTINUING WITHOUT OPTIONS");
     }
     userInput.clear();
+    println!("> How much delay (seconds) between each point excecution");
 
-    (clickFlag, pressFlag)
+    // input
+    io::stdin()
+        .read_line(&mut userInput)
+        .expect("failed to readline");
+    let excecutionDelay: u64 = userInput.trim().parse().unwrap();
+
+    (clickFlag, pressFlag, excecutionDelay)
 }
 
 fn makeNewListPoints() -> Vec<(i32, i32, String)> {
@@ -269,7 +287,12 @@ fn makeNewListPoints() -> Vec<(i32, i32, String)> {
     newListPoints2
 }
 
-fn excecutePointPath(clickFlag: bool, pressFlag: bool, userPoints: &Vec<(i32, i32, String)>) {
+fn excecutePointPath(
+    clickFlag: bool,
+    pressFlag: bool,
+    userPoints: &Vec<(i32, i32, String)>,
+    excecuteDelay: u64,
+) {
     let ListPoints: &Vec<(i32, i32, String)> = userPoints;
     let mut mouse: Enigo = Enigo::new(&Settings::default()).unwrap();
 
@@ -286,7 +309,9 @@ fn excecutePointPath(clickFlag: bool, pressFlag: bool, userPoints: &Vec<(i32, i3
         if (clickFlag == true) {
             mouse.button(enigo::Button::Left, Click).unwrap();
         }
-        thread::sleep(Duration::from_secs(1));
+        if excecuteDelay > 0 {
+            thread::sleep(Duration::from_secs(excecuteDelay));
+        }
     }
     mouse.button(enigo::Button::Left, Release).unwrap();
     println!("> PATH EXCECUTED SUCCEFULLY!!!!")
@@ -295,42 +320,55 @@ fn excecutePointPath(clickFlag: bool, pressFlag: bool, userPoints: &Vec<(i32, i3
 fn pokemonMode() {
     // // alt + tab to focus on the game window
     let mut enigo = Enigo::new(&Settings::default()).unwrap();
+    let mut moveNum: i32;
+    let mut userInput = String::new();
     enigo.key(Key::Alt, Press).unwrap();
     enigo.key(Key::Tab, Click).unwrap();
     enigo.key(Key::Alt, Release).unwrap();
-
     // game loop{}
     // must have a command terminal
     // that means asynch programming.....
     //big of
     pokemonRoam();
-    // impl choice
-    let mut moveNum: i32 = 2;
-    if (moveNum == 5) {
-        pokemonChooseMove(5);
-        pokemonChooseMove(5);
-        return;
+
+    loop {
+        println!("> Which move 1-4 or 5 which is flee ,6 is break");
+        // input
+        io::stdin()
+            .read_line(&mut userInput)
+            .expect("failed to readline");
+        moveNum = userInput.trim().parse().unwrap();
+        userInput.clear();
+        if (moveNum == 5) {
+            pokemonChooseMove(5);
+            pokemonChooseMove(5);
+            break;
+        }
+        pokemonChooseMove(moveNum);
+        thread::sleep(Duration::from_millis(500));
+
+        enigo.key(Key::Alt, Press).unwrap();
+        enigo.key(Key::Tab, Click).unwrap();
+        enigo.key(Key::Alt, Release).unwrap();
     }
-    pokemonChooseMove(moveNum);
-    thread::sleep(Duration::from_millis(500));
 }
 fn pokemonRoam() {
     let mut keyboard: Enigo = Enigo::new(&Settings::default()).unwrap();
 
     keyboard.key(Key::Unicode('w'), Press).unwrap();
-    thread::sleep(Duration::from_millis(500));
+    thread::sleep(Duration::from_millis(600));
     keyboard.key(Key::Unicode('w'), Release).unwrap();
 
     keyboard.key(Key::Unicode('s'), Press).unwrap();
-    thread::sleep(Duration::from_millis(500));
+    thread::sleep(Duration::from_millis(600));
     keyboard.key(Key::Unicode('s'), Release).unwrap();
 
     keyboard.key(Key::Unicode('a'), Press).unwrap();
-    thread::sleep(Duration::from_millis(500));
+    thread::sleep(Duration::from_millis(600));
     keyboard.key(Key::Unicode('a'), Release).unwrap();
 
     keyboard.key(Key::Unicode('d'), Press).unwrap();
-    thread::sleep(Duration::from_millis(500));
+    thread::sleep(Duration::from_millis(600));
     keyboard.key(Key::Unicode('d'), Release).unwrap();
 }
 fn pokemonChooseMove(moveNum: i32) {
