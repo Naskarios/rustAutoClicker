@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 #![allow(unused_parens)]
-
+#![allow(clippy::bool_comparison)]
 use enigo::Mouse as Mouse2;
 use enigo::{
     // {Axis::Horizontal, Axis::Vertical},
@@ -17,20 +17,61 @@ use std::io;
 use std::thread;
 use std::time::Duration;
 
+//**********************//**********************//**********************//**********************//**********************//**********************//**********************//**********************
+//https://stackoverflow.com/questions/57454887/how-do-i-append-to-a-tuple
+
+trait TupleAppend<T> {
+    type ResultType;
+
+    fn append(self, t: T) -> Self::ResultType;
+}
+
+impl<T> TupleAppend<T> for () {
+    type ResultType = (T,);
+
+    fn append(self, t: T) -> Self::ResultType {
+        (t,)
+    }
+}
+
+macro_rules! impl_tuple_append {
+    ( () ) => {};
+    ( ( $t0:ident $(, $types:ident)* ) ) => {
+        impl<$t0, $($types,)* T> TupleAppend<T> for ($t0, $($types,)*) {
+            // Trailing comma, just to be extra sure we are dealing
+            // with a tuple and not a parenthesized type/expr.
+            type ResultType = ($t0, $($types,)* T,);
+
+            fn append(self, t: T) -> Self::ResultType {
+                // Reuse the type identifiers to destructure ourselves:
+                let ($t0, $($types,)*) = self;
+                // Create a new tuple with the original elements, plus the new one:
+                ($t0, $($types,)* t,)
+            }
+        }
+
+        // Recurse for one smaller size:
+        impl_tuple_append! { ($($types),*) }
+    };
+}
+
+impl_tuple_append! {
+    // Supports tuples up to size 10:
+    (_1, _2, _3, _4, _5, _6, _7, _8, _9, _10)
+}
+
+//**********************//**********************//**********************//**********************//**********************//**********************//**********************
+
 fn main() {
     // REDOING ALL OF THIS USING ENIGO CRATE
     //https://chatgpt.com/share/b8ee6542-52b3-4046-bedd-abf8856e9667
-    // menu();
-    // parameter initialization
+    let something: Vec<(i32, i32, String)> = importPath();
 
-    // env_logger::init();
     let mut clickFlag = false;
     let mut pressFlag = false;
-    let mut userPoints: Vec<(i32, i32)> = vec![];
+    let mut userPoints: Vec<(i32, i32, String)>;
     //mut because there will be a loop later
     let mut menuOption: i32;
-
-    // menuOption = menu();
 
     // all branches of the match must have the same output
     // what if every funtion returns an result/option/err?
@@ -56,56 +97,103 @@ fn main() {
         loop {
             excecutePointPath(clickFlag, pressFlag, &userPoints)
         }
+    } else if menuOption == 4 {
+        userPoints = importPath();
     }
 
-    // POKEMON MODE
-
-    println!("THE END??");
+    println!("> THE END??? <");
 }
+// Import:
+// x,y
+// x1,y2
 
-fn pokemonMode() {
-    // // alt + tab to focus on the game window
-    let mut enigo = Enigo::new(&Settings::default()).unwrap();
-    enigo.key(Key::Alt, Press).unwrap();
-    enigo.key(Key::Tab, Click).unwrap();
-    enigo.key(Key::Alt, Release).unwrap();
+// OR
+// x,y,click
+// x1,y1,press
+// x2,y2,move
+// x3,y3,release
 
-    pokemonRoam();
+fn importPath() -> Vec<((i32, i32, String))> {
+    // let mut input = String::new();
+    // let mut temp: std::str::Split<'_, char>;
+    // io::stdin().read_line(&mut input).unwrap();
+    // temp = input.trim().split(' ');
+    // // // user input a b
+    // println!(
+    //     "this is 1 {:?} this is 2 {:?} ",
+    //     temp.next().unwrap(),
+    //     temp.next().unwrap()
+    // );
+    // // this is 1 "a" this is 2 "b"
+    /*
+    String that have been split cannot be indexed
+    use SPLITTED.next().unwrap() to take the value
+    can I get the len using temp.count()???
+    */
 
-    let mut moveNum: i32 = 2;
-    if (moveNum == 5) {
-        pokemonChooseMove(5);
-        pokemonChooseMove(5);
-        return;
+    let mut importedPath = vec![];
+    let mut input = String::new();
+    let mut givenData;
+    println!("> Quick (q) or Detailed (D) import");
+    io::stdin().read_line(&mut input).unwrap();
+
+    if input.starts_with('q') || input.starts_with('Q') {
+        let mut temp: std::str::Split<'_, char>;
+        input.clear();
+        println!("> Please give points (x,y x1,y1 x2,y2) theres a whitespace between each point:");
+        io::stdin().read_line(&mut input).unwrap();
+        givenData = input.trim().split(' ');
+        // println!("GIVEN {:?}", givenData);
+        for point in givenData {
+            temp = point.split(',');
+            importedPath.push((
+                temp.next().unwrap().parse().unwrap(),
+                temp.next().unwrap().parse().unwrap(),
+                "nope".to_owned(),
+            ))
+        }
     }
-    pokemonChooseMove(moveNum);
-    thread::sleep(Duration::from_millis(500));
+
+    if input.starts_with('d') || input.starts_with('D') {
+        //detailed import impl
+        //later....
+    }
+
+    println!("PATH GIVEN {:?}", importedPath);
+    importedPath
 }
 
-fn menu() -> (i32, Vec<(i32, i32)>) {
+fn menu() -> (i32, Vec<(i32, i32, String)>) {
     // impl the import option-------------------------------------------------------------
+
+    // I got lazy thats why theres a option2 I ll fix it later
     let mut menuOption = String::new();
     let mut menuOption2: i32 = 0;
-    let mut userPoints: Vec<(i32, i32)> = vec![];
+    let mut userPoints: Vec<(i32, i32, String)> = vec![];
 
     println!("Choose an option:");
-    print!("1.Simple trace \n 2.Pokemon mode \n 3.Trace loop \n4.Import?\n");
+    print!(
+        " 1.Simple trace
+    \n 2.Pokemon mode 
+    \n 3.Trace loop
+    \n 4.Import?\n"
+    );
 
     io::stdin()
         .read_line(&mut menuOption)
         .expect("failed to readline");
 
     if menuOption.starts_with('1') {
-        menuOption2 = 1;
+        menuOption2 = menuOption.trim().parse().unwrap();
     }
     if menuOption.starts_with('2') {
-        menuOption2 = 2;
+        menuOption2 = menuOption.trim().parse().unwrap();
     }
     if menuOption.starts_with('3') {
-        menuOption2 = 3;
+        menuOption2 = menuOption.trim().parse().unwrap();
     }
     if menuOption.starts_with('4') {
-        menuOption2 = 4;
+        menuOption2 = menuOption.trim().parse().unwrap();
     }
     (menuOption2, userPoints)
 }
@@ -130,25 +218,12 @@ fn settingParameters(mut clickFlag: bool, mut pressFlag: bool) -> (bool, bool) {
     }
     userInput.clear();
 
-    // println!("> Wanna add your own point path?(y/n)");
-    // // reading input
-
-    // io::stdin()
-    //     .read_line(&mut userInput)
-    //     .expect("failed to readline");
-
-    // if (userInput.starts_with('y') || userInput.starts_with('Y')) {
-    //     // userPoint setup
-    //     userPoints = makeNewListPoints();
-    // } else {
-    //     println!("> NO OPTION SPECIFIED");
-    //     println!("> CONTINUING WITHOUT IMPORT");
-    // }
     (clickFlag, pressFlag)
 }
 
-fn makeNewListPoints() -> Vec<(i32, i32)> {
+fn makeNewListPoints() -> Vec<(i32, i32, String)> {
     let mut userInput = String::new();
+    let mut newListPoints2: Vec<(i32, i32, String)> = vec![];
 
     println!("> How many points are we tracing");
 
@@ -159,7 +234,6 @@ fn makeNewListPoints() -> Vec<(i32, i32)> {
 
     //input parse
     let count: usize = userInput.trim().parse().unwrap();
-    // println!("edw count  {} -> {:?}", count, count);
     userInput.clear();
 
     println!("> How much delay (seconds) between each point trace");
@@ -185,75 +259,79 @@ fn makeNewListPoints() -> Vec<(i32, i32)> {
     thread::sleep(Duration::from_secs(1));
     println!("> Staring in 1...");
 
-    // let mut newListPoints: Vec<Point> = vec![Point { x: 0, y: 0 }];
-    let mut newListPoints2: Vec<(i32, i32)> = vec![];
-    //point capture with 3sec delay
-
+    //tracing the current position of the mouse with each interval having a 'traceDelay' delay
     for i in 0..count {
-        // newListPoints.push(mouse.get_position().unwrap());
-        newListPoints2.push(mouse2.location().unwrap());
+        newListPoints2.push(mouse2.location().unwrap().append("nope".to_owned()));
 
-        print!("> {:?} new point{:?}\n", i, newListPoints2[i]);
+        println!("> {:?} new point{:?}", i, newListPoints2[i]);
         thread::sleep(Duration::from_secs(traceDelay.try_into().unwrap()));
     }
     newListPoints2
 }
 
-fn excecutePointPath(clickFlag: bool, pressFlag: bool, userPoints: &Vec<(i32, i32)>) {
-    let ListPoints: &Vec<(i32, i32)>;
+fn excecutePointPath(clickFlag: bool, pressFlag: bool, userPoints: &Vec<(i32, i32, String)>) {
+    let ListPoints: &Vec<(i32, i32, String)> = userPoints;
     let mut mouse: Enigo = Enigo::new(&Settings::default()).unwrap();
 
-    // // Trac Path
-    // if (userPoints.is_empty()) {
-    //     println!("> NO USER POINTS AVAILABLE ");
-    //     println!("> LET S MAKE ONE NOW");
-    //     ListPoints = makeNewListPoints();
-    //     println!("> {:?}", ListPoints);
-    // } else {
-    //     //using users positions
-
-    ListPoints = userPoints;
-    //     println!("> User points added {:?}", ListPoints);
-    // }
+    println!("> User points added {:?}", ListPoints);
 
     // Excecute Path
     // move to specified positions loop with a 1sec delay
 
     if (pressFlag == true) {
-        let _ = mouse.button(enigo::Button::Left, Press).unwrap();
+        mouse.button(enigo::Button::Left, Press).unwrap();
     }
     for p in ListPoints {
-        let _ = mouse.move_mouse(p.0, p.1, Abs).unwrap();
+        mouse.move_mouse(p.0, p.1, Abs).unwrap();
         if (clickFlag == true) {
-            let _ = mouse.button(enigo::Button::Left, Click).unwrap();
+            mouse.button(enigo::Button::Left, Click).unwrap();
         }
         thread::sleep(Duration::from_secs(1));
     }
-    let _ = mouse.button(enigo::Button::Left, Release).unwrap();
+    mouse.button(enigo::Button::Left, Release).unwrap();
     println!("> PATH EXCECUTED SUCCEFULLY!!!!")
+}
+
+fn pokemonMode() {
+    // // alt + tab to focus on the game window
+    let mut enigo = Enigo::new(&Settings::default()).unwrap();
+    enigo.key(Key::Alt, Press).unwrap();
+    enigo.key(Key::Tab, Click).unwrap();
+    enigo.key(Key::Alt, Release).unwrap();
+
+    // game loop{}
+    // must have a command terminal
+    // that means asynch programming.....
+    //big of
+    pokemonRoam();
+    // impl choice
+    let mut moveNum: i32 = 2;
+    if (moveNum == 5) {
+        pokemonChooseMove(5);
+        pokemonChooseMove(5);
+        return;
+    }
+    pokemonChooseMove(moveNum);
+    thread::sleep(Duration::from_millis(500));
 }
 fn pokemonRoam() {
     let mut keyboard: Enigo = Enigo::new(&Settings::default()).unwrap();
 
-    keyboard.key(Key::Unicode(('w')), Press).unwrap();
+    keyboard.key(Key::Unicode('w'), Press).unwrap();
     thread::sleep(Duration::from_millis(500));
-    keyboard.key(Key::Unicode(('w')), Release).unwrap();
+    keyboard.key(Key::Unicode('w'), Release).unwrap();
 
-    keyboard.key(Key::Unicode(('s')), Press).unwrap();
+    keyboard.key(Key::Unicode('s'), Press).unwrap();
     thread::sleep(Duration::from_millis(500));
-    keyboard.key(Key::Unicode(('s')), Release).unwrap();
+    keyboard.key(Key::Unicode('s'), Release).unwrap();
 
-    keyboard.key(Key::Unicode(('s')), Press).unwrap();
+    keyboard.key(Key::Unicode('a'), Press).unwrap();
     thread::sleep(Duration::from_millis(500));
-    keyboard.key(Key::Unicode(('s')), Release).unwrap();
+    keyboard.key(Key::Unicode('a'), Release).unwrap();
 
-    keyboard.key(Key::Unicode(('a')), Press).unwrap();
+    keyboard.key(Key::Unicode('d'), Press).unwrap();
     thread::sleep(Duration::from_millis(500));
-    keyboard.key(Key::Unicode(('a')), Release).unwrap();
-
-    keyboard.key(Key::Unicode(('d')), Press).unwrap();
-    thread::sleep(Duration::from_millis(500));
-    keyboard.key(Key::Unicode(('d')), Release).unwrap();
+    keyboard.key(Key::Unicode('d'), Release).unwrap();
 }
 fn pokemonChooseMove(moveNum: i32) {
     let mut mouse: Enigo = Enigo::new(&Settings::default()).unwrap();
@@ -266,7 +344,7 @@ fn pokemonChooseMove(moveNum: i32) {
         5 => mouse.move_mouse(130, 466, Abs).unwrap(),
         _ => mouse.move_mouse(130, 466, Abs).unwrap(),
     }
-    let _ = mouse.button(enigo::Button::Left, Click).unwrap();
+    mouse.button(enigo::Button::Left, Click).unwrap();
 }
 
 /*
@@ -310,15 +388,22 @@ POKEMON MODE
 
 
 3.
+Import:
+x,y
+x1,y2
+
+OR
+x,y,click
+x1,y1,press
+x2,y2,move
+x3,y3,release
+
+for the spiderman game
+
+
+
+4.
 I think thats about it
 
-Methods
-    click
-    get_position
-    move_to
-    new
-    press
-    release
-    scroll
-    wheel
+
 */
