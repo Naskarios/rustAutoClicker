@@ -63,6 +63,7 @@ impl_tuple_append! {
 //**********************//**********************//**********************//**********************//**********************//**********************//**********************
 
 fn main() {
+    println!("> Autoclicker made by Nask");
     // REDOING ALL OF THIS USING ENIGO CRATE
     //https://chatgpt.com/share/b8ee6542-52b3-4046-bedd-abf8856e9667
 
@@ -78,116 +79,58 @@ fn main() {
     //     1 =>
     // }
 
-    // loop {
-    menuOption = menu();
+    loop {
+        menuOption = menu();
 
-    if menuOption == 1 {
-        (clickFlag, pressFlag, excecuteDelay) = settingParameters(clickFlag, pressFlag);
-        if userPoints.is_empty() {
-            userPoints = makeNewListPoints();
-        }
-        excecutePointPath(clickFlag, pressFlag, &userPoints, excecuteDelay);
-    } else if menuOption == 2 {
-        pokemonMode()
-    } else if menuOption == 3 {
-        (clickFlag, pressFlag, excecuteDelay) = settingParameters(clickFlag, pressFlag);
-        if userPoints.is_empty() {
-            userPoints = makeNewListPoints();
-        }
-        // println!("> How much delay (seconds) between each point trace");
-        // let mut userInput = String::new();
-        // // input
-        // io::stdin()
-        //     .read_line(&mut userInput)
-        //     .expect("failed to readline");
-        // excecuteDelay = userInput.trim().parse().unwrap();
+        if menuOption == 1 {
+            (clickFlag, pressFlag, excecuteDelay) = settingParameters(clickFlag, pressFlag);
+            if userPoints.is_empty() {
+                userPoints = makeNewListPoints();
+            }
+            excecutePointPath(clickFlag, pressFlag, &userPoints, excecuteDelay);
+        } else if menuOption == 2 {
+            pokemonMode()
+        } else if menuOption == 3 {
+            (clickFlag, pressFlag, excecuteDelay) = settingParameters(clickFlag, pressFlag);
+            if userPoints.is_empty() {
+                userPoints = makeNewListPoints();
+            }
+            // println!("> How much delay (seconds) between each point trace");
+            // let mut userInput = String::new();
+            // // input
+            // io::stdin()
+            //     .read_line(&mut userInput)
+            //     .expect("failed to readline");
+            // excecuteDelay = userInput.trim().parse().unwrap();
 
-        loop {
-            excecutePointPath(clickFlag, pressFlag, &userPoints, excecuteDelay)
-        }
-    } else if menuOption == 4 {
-        userPoints = importPath();
-    }
-    //      else {
-    //         println!("invalid option");
-    //         break;
-    //     }
-    // }
-    println!("> THE END??? <");
-}
-// Import:
-// x,y
-// x1,y2
-
-// OR
-// x,y,click
-// x1,y1,press
-// x2,y2,move
-// x3,y3,release
-
-fn importPath() -> Vec<((i32, i32, String))> {
-    // let mut input = String::new();
-    // let mut temp: std::str::Split<'_, char>;
-    // io::stdin().read_line(&mut input).unwrap();
-    // temp = input.trim().split(' ');
-    // // // user input a b
-    // println!(
-    //     "this is 1 {:?} this is 2 {:?} ",
-    //     temp.next().unwrap(),
-    //     temp.next().unwrap()
-    // );
-    // // this is 1 "a" this is 2 "b"
-    /*
-    String that have been split cannot be indexed
-    use SPLITTED.next().unwrap() to take the value
-    can I get the len using temp.count()???
-    */
-
-    let mut importedPath = vec![];
-    let mut input = String::new();
-    let givenData;
-    println!("> Quick (q) or Detailed (D) import");
-    io::stdin().read_line(&mut input).unwrap();
-
-    if input.starts_with('q') || input.starts_with('Q') {
-        let mut temp: std::str::Split<'_, char>;
-        input.clear();
-        println!("> Please give points (x,y x1,y1 x2,y2) theres a whitespace between each point:");
-        io::stdin().read_line(&mut input).unwrap();
-        givenData = input.trim().split(' ');
-        // println!("GIVEN {:?}", givenData);
-        for point in givenData {
-            temp = point.split(',');
-            importedPath.push((
-                temp.next().unwrap().parse().unwrap(),
-                temp.next().unwrap().parse().unwrap(),
-                "nope".to_owned(),
-            ))
+            loop {
+                excecutePointPath(clickFlag, pressFlag, &userPoints, excecuteDelay)
+            }
+        } else if menuOption == 4 {
+            userPoints = importPath();
+        } else if menuOption == 5 {
+            break;
+        } else {
+            println!("invalid option");
+            break;
         }
     }
 
-    if input.starts_with('d') || input.starts_with('D') {
-        //detailed import impl
-        //later....
-    }
-
-    println!("PATH GIVEN {:?}", importedPath);
-    importedPath
+    println!("> THE END");
 }
 
 fn menu() -> (i32) {
-    // impl the import option-------------------------------------------------------------
-
     // I got lazy thats why theres a option2 I ll fix it later
     let mut menuOption = String::new();
     let mut menuOption2: i32 = 0;
 
-    println!("Choose an option:");
+    println!("> Choose an option:");
     print!(
-        " 1.Simple trace
-    \n 2.Pokemon mode 
-    \n 3.Trace loop
-    \n 4.Import?\n"
+        "> 1.Simple trace
+    \n> 2.Pokemon mode 
+    \n> 3.Trace loop
+    \n> 4.Import?
+    \n> 5.Exit\n"
     );
 
     io::stdin()
@@ -206,13 +149,16 @@ fn menu() -> (i32) {
     if menuOption.starts_with('4') {
         menuOption2 = menuOption.trim().parse().unwrap();
     }
+    if menuOption.starts_with('5') {
+        menuOption2 = menuOption.trim().parse().unwrap();
+    }
     menuOption2
 }
 
 fn settingParameters(mut clickFlag: bool, mut pressFlag: bool) -> (bool, bool, u64) {
     let mut userInput = String::new();
 
-    println!("> Wanna click or press? (c/p)");
+    println!("> Wanna click or press? (c/p) **IGNORE IF YOU VE PICKED DETAILED IMPORT**");
     // reading input
 
     io::stdin()
@@ -299,8 +245,33 @@ fn excecutePointPath(
     println!("> User points added {:?}", ListPoints);
 
     // Excecute Path
-    // move to specified positions loop with a 1sec delay
 
+    // detailed path
+    if (!userPoints[0].2.contains("ope")) {
+        let mut tempDir = Click;
+
+        for p in ListPoints {
+            if excecuteDelay > 0 {
+                mouse.move_mouse(p.0, p.1, Abs).unwrap();
+                thread::sleep(Duration::from_secs(excecuteDelay));
+            }
+            if userPoints[0].2.contains("p") {
+                mouse.button(enigo::Button::Left, tempDir).unwrap();
+                tempDir = Press;
+            } else if userPoints[0].2.contains("r") {
+                mouse.button(enigo::Button::Left, tempDir).unwrap();
+                tempDir = Release;
+            } else if userPoints[0].2.contains("c") {
+                tempDir = Click;
+                mouse.button(enigo::Button::Left, tempDir).unwrap();
+            }
+        }
+        println!("> PATH EXCECUTED SUCCEFULLY!!!!");
+        return;
+    }
+
+    // quick  path , excecution with only parameters  from settingParameters
+    // move to specified positions loop with a excecutiondelay
     if (pressFlag == true) {
         mouse.button(enigo::Button::Left, Press).unwrap();
     }
@@ -309,12 +280,77 @@ fn excecutePointPath(
         if (clickFlag == true) {
             mouse.button(enigo::Button::Left, Click).unwrap();
         }
-        if excecuteDelay > 0 {
+        if Duration::from_secs(excecuteDelay) > Duration::from_secs(0) {
             thread::sleep(Duration::from_secs(excecuteDelay));
         }
     }
     mouse.button(enigo::Button::Left, Release).unwrap();
     println!("> PATH EXCECUTED SUCCEFULLY!!!!")
+}
+fn importPath() -> Vec<((i32, i32, String))> {
+    // let mut input = String::new();
+    // let mut temp: std::str::Split<'_, char>;
+    // io::stdin().read_line(&mut input).unwrap();
+    // temp = input.trim().split(' ');
+    // // // user input a b
+    // println!(
+    //     "this is 1 {:?} this is 2 {:?} ",
+    //     temp.next().unwrap(),
+    //     temp.next().unwrap()
+    // );
+    // // this is 1 "a" this is 2 "b"
+    /*
+    String that have been split cannot be indexed
+    use SPLITTED.next().unwrap() to take the value
+    can I get the len using temp.count()???
+    */
+
+    let mut importedPath = vec![];
+    let mut input = String::new();
+    let givenData;
+    println!("> Quick (q/Q) or Detailed (d/D) import");
+    io::stdin().read_line(&mut input).unwrap();
+
+    if input.starts_with('q') || input.starts_with('Q') {
+        let mut temp: std::str::Split<'_, char>;
+        input.clear();
+        println!("> Please give points (x,y x1,y1 x2,y2) theres a whitespace between each point:");
+        io::stdin().read_line(&mut input).unwrap();
+        givenData = input.trim().split(' ');
+        // println!("GIVEN {:?}", givenData);
+        for point in givenData {
+            temp = point.split(',');
+            importedPath.push((
+                temp.next().unwrap().parse().unwrap(),
+                temp.next().unwrap().parse().unwrap(),
+                "nope".to_owned(),
+            ))
+        }
+    } else if input.starts_with('d') || input.starts_with('D') {
+        let mut temp: std::str::Split<'_, char>;
+        input.clear();
+        println!("> Please give points and parameters (x,y,p x1,y1,p1 x2,y2,p2) \n where p=[ p,r,c,n ] Press,Release,Click,Nothing the left mouse button\n theres a whitespace between each point:");
+        io::stdin().read_line(&mut input).unwrap();
+        givenData = input.trim().split(' ');
+
+        println!("GIVEN {:?}", givenData);
+        for point in givenData {
+            temp = point.split(',');
+            importedPath.push((
+                temp.next().unwrap().parse().unwrap(),
+                temp.next().unwrap().parse().unwrap(),
+                temp.next().unwrap().parse().unwrap(),
+            ))
+        }
+
+        //detailed import impl
+        //later....
+    } else {
+        println!("> invalid option");
+    }
+
+    println!("> PATH GIVEN {:?}", importedPath);
+    importedPath
 }
 
 fn pokemonMode() {
@@ -331,31 +367,33 @@ fn pokemonMode() {
     //big of
     pokemonRoam();
 
-
     enigo.key(Key::Alt, Press).unwrap();
     enigo.key(Key::Tab, Click).unwrap();
     enigo.key(Key::Alt, Release).unwrap();
 
     loop {
-        println!("> Which move 1-4 or 5 which is flee and break,6 is roam again");
+        enigo.button(enigo::Button::Left, Press).unwrap(); //tap battle
+        thread::sleep(Duration::from_millis(100));
+        enigo.button(enigo::Button::Left, Release).unwrap();
+
+        println!("> Which move 1-4 or 5 which is flee ,6 is roam and 7 is break");
         // input
         io::stdin()
             .read_line(&mut userInput)
             .expect("failed to readline");
         moveNum = userInput.trim().parse().unwrap();
         userInput.clear();
-        if (moveNum == 5) {
-            pokemonChooseMove(5);
-            pokemonChooseMove(5);
-            break;
-        }
-        if moveNum==6{
+        if moveNum == 6 {
+            // alt tab from terminal to pokemon
             enigo.key(Key::Alt, Press).unwrap();
             enigo.key(Key::Tab, Click).unwrap();
             enigo.key(Key::Alt, Release).unwrap();
             pokemonRoam();
-
         }
+        if moveNum == 7 {
+            break;
+        }
+
         pokemonChooseMove(moveNum);
         thread::sleep(Duration::from_millis(500));
 
@@ -396,16 +434,12 @@ fn pokemonChooseMove(moveNum: i32) {
     }
 
     //so pokemon doesnt like instant clicks so Im putting 100ms
-    mouse.button(enigo::Button::Left, Press).unwrap();//tap battle
+
+    thread::sleep(Duration::from_millis(100));
+
+    mouse.button(enigo::Button::Left, Press).unwrap(); // use move
     thread::sleep(Duration::from_millis(100));
     mouse.button(enigo::Button::Left, Release).unwrap();
-
-    thread::sleep(Duration::from_millis(100));
-
-    mouse.button(enigo::Button::Left, Press).unwrap();    // use move
-    thread::sleep(Duration::from_millis(100));
-    mouse.button(enigo::Button::Left, Release).unwrap();
-
 }
 
 /*
@@ -462,7 +496,7 @@ I think thats about it
 
 Pokemon mode DONE
 Loop DONE
-All thats left is Detailed Import 
+All thats left is Detailed Import DONE
 and error handling....
 
 */
