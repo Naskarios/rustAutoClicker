@@ -367,14 +367,16 @@ fn pokemonMode() {
     //big of
     pokemonRoam();
 
+        thread::sleep(Duration::from_millis(200));
+
+
     enigo.key(Key::Alt, Press).unwrap();
     enigo.key(Key::Tab, Click).unwrap();
     enigo.key(Key::Alt, Release).unwrap();
 
     loop {
-        enigo.button(enigo::Button::Left, Press).unwrap(); //tap battle
-        thread::sleep(Duration::from_millis(100));
-        enigo.button(enigo::Button::Left, Release).unwrap();
+        // thread::sleep(Duration::from_millis(200));
+
 
         println!("> Which move 1-4 or 5 which is flee ,6 is roam and 7 is break");
         // input
@@ -389,17 +391,23 @@ fn pokemonMode() {
             enigo.key(Key::Tab, Click).unwrap();
             enigo.key(Key::Alt, Release).unwrap();
             pokemonRoam();
+            enigo.key(Key::Alt, Press).unwrap();
+            enigo.key(Key::Tab, Click).unwrap();
+            enigo.key(Key::Alt, Release).unwrap();
         }
         if moveNum == 7 {
             break;
         }
 
         pokemonChooseMove(moveNum);
-        thread::sleep(Duration::from_millis(500));
+
+        thread::sleep(Duration::from_millis(300));
 
         enigo.key(Key::Alt, Press).unwrap();
         enigo.key(Key::Tab, Click).unwrap();
         enigo.key(Key::Alt, Release).unwrap();
+        
+    
     }
 }
 fn pokemonRoam() {
@@ -435,11 +443,16 @@ fn pokemonChooseMove(moveNum: i32) {
 
     //so pokemon doesnt like instant clicks so Im putting 100ms
 
+        mouse.button(enigo::Button::Left, Press).unwrap(); //tap battle
+        thread::sleep(Duration::from_millis(300));
+        mouse.button(enigo::Button::Left, Release).unwrap();
+
     thread::sleep(Duration::from_millis(100));
 
     mouse.button(enigo::Button::Left, Press).unwrap(); // use move
-    thread::sleep(Duration::from_millis(100));
+    thread::sleep(Duration::from_millis(300));
     mouse.button(enigo::Button::Left, Release).unwrap();
+   
 }
 
 /*
